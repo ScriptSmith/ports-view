@@ -1,0 +1,53 @@
+/* Match the standard panel-button padding of neighbouring indicators; only
+   control the gap between our icon and count. */
+.ports-view-box {
+    spacing: 4px;
+}
+
+.ports-view-icon {
+    margin: 0;
+}
+
+/* Port count next to the icon. Tabular digits keep the panel from jiggling. */
+.ports-view-count {
+    font-size: 12px;
+    font-weight: bold;
+    font-feature-settings: "tnum" 1;
+}
+
+.ports-view-header {
+    font-weight: bold;
+}
+
+/* Group titles (Watched / Your ports / Other ports). */
+.ports-view-group {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Process heading inside a port submenu. */
+.ports-view-proc-head {
+    font-weight: bold;
+}
+
+/* Keep the menu narrow: cap the list and leave room for the scrollbar gutter. */
+.ports-view-scroll {
+    max-height: 480px;
+    max-width: 360px;
+}
+
+.ports-view-row-label {
+    max-width: 290px;
+}
+
+/* Metadata rows (dir, exe, cmd, …): same typeface/size as the rest, just
+   dimmed, and width-capped so long cmdlines don't widen the menu. */
+.ports-view-meta {
+    color: rgba(255, 255, 255, 0.75);
+    max-width: 290px;
+}
+
+.ports-view-danger {
+    color: #e74c3c;
+}

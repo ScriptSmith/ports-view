@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.ports-view" path="/org/gnome/shell/extensions/ports-view/">
+    <key name="update-interval" type="i">
+      <default>30</default>
+      <summary>Update Interval</summary>
+      <description>How often to scan for listening ports (in seconds)</description>
+      <range min="1" max="300"/>
+    </key>
+    <key name="include-udp" type="b">
+      <default>true</default>
+      <summary>Include UDP</summary>
+      <description>Include UDP sockets in addition to TCP</description>
+    </key>
+    <key name="only-exposed" type="b">
+      <default>false</default>
+      <summary>Only network-exposed ports</summary>
+      <description>Hide ports that are only bound to the loopback interface</description>
+    </key>
+    <key name="watch-enabled" type="b">
+      <default>false</default>
+      <summary>Watch a port range</summary>
+      <description>Group ports within a range of interest at the top of the menu</description>
+    </key>
+    <key name="watch-low" type="i">
+      <default>3000</default>
+      <summary>Watch range start</summary>
+      <description>Lowest port number in the watched range</description>
+      <range min="0" max="65535"/>
+    </key>
+    <key name="watch-high" type="i">
+      <default>3999</default>
+      <summary>Watch range end</summary>
+      <description>Highest port number in the watched range</description>
+      <range min="0" max="65535"/>
+    </key>
+  </schema>
+</schemalist>
