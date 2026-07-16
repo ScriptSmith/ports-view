@@ -19,20 +19,13 @@
     </key>
     <key name="watch-enabled" type="b">
       <default>false</default>
-      <summary>Watch a port range</summary>
-      <description>Group ports within a range of interest at the top of the menu</description>
+      <summary>Watch port ranges</summary>
+      <description>Restrict the menu list to ports within the watched ranges</description>
     </key>
-    <key name="watch-low" type="i">
-      <default>3000</default>
-      <summary>Watch range start</summary>
-      <description>Lowest port number in the watched range</description>
-      <range min="0" max="65535"/>
-    </key>
-    <key name="watch-high" type="i">
-      <default>3999</default>
-      <summary>Watch range end</summary>
-      <description>Highest port number in the watched range</description>
-      <range min="0" max="65535"/>
+    <key name="watch-ranges" type="as">
+      <default>['3000-3999']</default>
+      <summary>Watched port ranges</summary>
+      <description>Port ranges (each "low-high") the menu list is restricted to when watching is enabled</description>
     </key>
   </schema>
 </schemalist>

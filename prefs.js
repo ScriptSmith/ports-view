@@ -51,50 +51,106 @@ export default class PortsViewPreferences extends ExtensionPreferences {
         settings.bind('only-exposed', exposedRow, 'active', 0);
         group.add(exposedRow);
 
-        // Watched port range — a range of interest grouped at the top of the menu.
+        // Watched ranges — when enabled, the menu only lists ports inside these
+        // ranges. Any number of ranges can be added.
         const watchGroup = new Adw.PreferencesGroup({
-            title: 'Watched range',
-            description: 'Group a range of ports you care about at the top of the menu',
+            title: 'Watched ranges',
+            description: 'When enabled, the menu only lists ports within these ranges',
         });
         page.add(watchGroup);
 
+        const addButton = new Gtk.Button({
+            icon_name: 'list-add-symbolic',
+            valign: Gtk.Align.CENTER,
+            tooltip_text: 'Add a range',
+            css_classes: ['flat'],
+        });
+        watchGroup.set_header_suffix(addButton);
+
         const watchRow = new Adw.SwitchRow({
-            title: 'Watch a port range',
+            title: 'Restrict menu to watched ranges',
         });
         settings.bind('watch-enabled', watchRow, 'active', 0);
         watchGroup.add(watchRow);
 
-        const lowRow = new Adw.SpinRow({
-            title: 'Range start',
-            adjustment: new Gtk.Adjustment({
-                lower: 0,
-                upper: 65535,
-                step_increment: 1,
-                page_increment: 100,
-                value: settings.get_int('watch-low'),
-            }),
+        // Read/write the ranges setting as "low-high" strings.
+        const getRanges = () => settings.get_strv('watch-ranges').map(entry => {
+            const [a, b] = entry.split('-').map(n => parseInt(n, 10));
+            return [Number.isFinite(a) ? a : 0, Number.isFinite(b) ? b : 0];
         });
-        lowRow.connect('notify::value', () => {
-            settings.set_int('watch-low', lowRow.get_value());
-        });
-        settings.bind('watch-enabled', lowRow, 'sensitive', 0);
-        watchGroup.add(lowRow);
+        const setRanges = ranges =>
+            settings.set_strv('watch-ranges', ranges.map(([lo, hi]) => `${lo}-${hi}`));
 
-        const highRow = new Adw.SpinRow({
-            title: 'Range end',
+        const makeSpin = value => new Gtk.SpinButton({
             adjustment: new Gtk.Adjustment({
                 lower: 0,
                 upper: 65535,
                 step_increment: 1,
                 page_increment: 100,
-                value: settings.get_int('watch-high'),
+                value,
             }),
+            valign: Gtk.Align.CENTER,
         });
-        highRow.connect('notify::value', () => {
-            settings.set_int('watch-high', highRow.get_value());
+
+        // Track the dynamically added range rows so we can rebuild them.
+        let rangeRows = [];
+
+        const rebuildRanges = () => {
+            for (const row of rangeRows) {
+                watchGroup.remove(row);
+            }
+            rangeRows = [];
+
+            getRanges().forEach(([lo, hi], index) => {
+                const row = new Adw.ActionRow({ title: `Range ${index + 1}` });
+
+                const startSpin = makeSpin(lo);
+                const endSpin = makeSpin(hi);
+                const dash = new Gtk.Label({ label: '–', valign: Gtk.Align.CENTER });
+                const removeButton = new Gtk.Button({
+                    icon_name: 'list-remove-symbolic',
+                    valign: Gtk.Align.CENTER,
+                    tooltip_text: 'Remove this range',
+                    css_classes: ['flat'],
+                });
+
+                const writeThisRange = () => {
+                    const ranges = getRanges();
+                    if (index < ranges.length) {
+                        ranges[index] = [startSpin.get_value_as_int(), endSpin.get_value_as_int()];
+                        setRanges(ranges);
+                    }
+                };
+                startSpin.connect('value-changed', writeThisRange);
+                endSpin.connect('value-changed', writeThisRange);
+                removeButton.connect('clicked', () => {
+                    const ranges = getRanges();
+                    ranges.splice(index, 1);
+                    setRanges(ranges);
+                    rebuildRanges();
+                });
+
+                row.add_suffix(startSpin);
+                row.add_suffix(dash);
+                row.add_suffix(endSpin);
+                row.add_suffix(removeButton);
+
+                settings.bind('watch-enabled', row, 'sensitive', 0);
+
+                watchGroup.add(row);
+                rangeRows.push(row);
+            });
+        };
+
+        addButton.connect('clicked', () => {
+            const ranges = getRanges();
+            ranges.push([3000, 3999]);
+            setRanges(ranges);
+            rebuildRanges();
         });
-        settings.bind('watch-enabled', highRow, 'sensitive', 0);
-        watchGroup.add(highRow);
+        settings.bind('watch-enabled', addButton, 'sensitive', 0);
+
+        rebuildRanges();
 
         const noteGroup = new Adw.PreferencesGroup({
             title: 'Note',

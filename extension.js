@@ -257,42 +257,71 @@ class PortsViewIndicator extends PanelMenu.Button {
         this._listSection.removeAll();
     }
 
-    // The badge counts only the user's own ports.
+    // The badge counts only the user's own ports, restricted to the watched
+    // ranges when watching is enabled (matching what the menu lists).
     _renderBadge() {
-        const owned = this._ports.filter(rec => this._isOwned(rec)).length;
+        const owned = this._visiblePorts().filter(rec => this._isOwned(rec)).length;
         this._countLabel.set_text(`${owned}`);
+    }
+
+    // Parse the watched ranges setting ("low-high" strings) into {lo, hi} pairs.
+    _getWatchRanges() {
+        const ranges = [];
+        for (const entry of this._settings.get_strv('watch-ranges')) {
+            const parts = entry.split('-');
+            if (parts.length !== 2) {
+                continue;
+            }
+            const a = parseInt(parts[0], 10);
+            const b = parseInt(parts[1], 10);
+            if (!Number.isFinite(a) || !Number.isFinite(b)) {
+                continue;
+            }
+            ranges.push({ lo: Math.min(a, b), hi: Math.max(a, b) });
+        }
+        return ranges;
+    }
+
+    // The ports surfaced by both the badge and the menu: every listening port,
+    // or only those within the watched ranges when watching is enabled. Returns
+    // the same `this._ports` reference when not filtering.
+    _visiblePorts() {
+        const ranges = this._getWatchRanges();
+        if (!this._settings.get_boolean('watch-enabled') || ranges.length === 0) {
+            return this._ports;
+        }
+        return this._ports.filter(rec => ranges.some(r => rec.port >= r.lo && rec.port <= r.hi));
     }
 
     _renderList() {
         this._systemUptime = this._readSystemUptime();
         this._listSection.removeAll();
 
-        const ports = this._ports;
+        // When watching is on, the whole menu is restricted to the watched
+        // ranges; otherwise every listening port is shown.
+        const ports = this._visiblePorts();
+        const filtering = ports !== this._ports;
+
         const ownedCount = ports.filter(rec => this._isOwned(rec)).length;
         this._headerItem.label.set_text(
             ownedCount === 1 ? '1 of your ports in use' : `${ownedCount} of your ports in use`
         );
 
         if (ports.length === 0) {
-            const empty = new PopupMenu.PopupMenuItem('No listening ports');
+            const msg = filtering && this._ports.length > 0
+                ? 'No listening ports in watched ranges'
+                : 'No listening ports';
+            const empty = new PopupMenu.PopupMenuItem(msg);
             empty.setSensitive(false);
             this._listSection.addMenuItem(empty);
             return;
         }
 
-        // Partition into Watched (range of interest), Your ports, Other ports.
-        const watchEnabled = this._settings.get_boolean('watch-enabled');
-        const lo = Math.min(this._settings.get_int('watch-low'), this._settings.get_int('watch-high'));
-        const hi = Math.max(this._settings.get_int('watch-low'), this._settings.get_int('watch-high'));
-        const inWatch = rec => watchEnabled && rec.port >= lo && rec.port <= hi;
-
-        const watched = ports.filter(inWatch);
-        const rest = ports.filter(rec => !inWatch(rec));
-        const yours = rest.filter(rec => this._isOwned(rec));
-        const others = rest.filter(rec => !this._isOwned(rec));
+        // Split the (possibly filtered) list into your ports and everyone else's.
+        const yours = ports.filter(rec => this._isOwned(rec));
+        const others = ports.filter(rec => !this._isOwned(rec));
 
         let rendered = 0;
-        rendered += this._addGroup(`Watched ${lo}–${hi}`, watched, rendered);
         rendered += this._addGroup('Your ports', yours, rendered);
         rendered += this._addGroup('Other ports', others, rendered);
     }

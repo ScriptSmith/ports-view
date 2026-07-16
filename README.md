@@ -7,10 +7,12 @@ process attached to it.
 ## Features
 
 - **Panel badge**: a network icon with a live count of the listening ports owned
-  by your user.
+  by your user. When watched ranges are enabled, the count reflects only the
+  ports inside those ranges (matching the menu).
+- **Watched ranges** — an optional filter: when enabled, the popup lists only
+  ports inside the ranges you configure. Add as many ranges as you like in
+  Settings.
 - **Grouped popup**:
-  - **Watched range** — an optional range of ports you care about, floated to
-    the top (configure in Settings).
   - **Your ports** — ports owned by your user, with the attached process.
   - **Other ports** — ports owned by other users (e.g. root). The port and
     address are shown; the process name is not visible without privileges.
@@ -21,7 +23,7 @@ process attached to it.
 - **Exposure colouring**: ports reachable off-box (bound to `0.0.0.0`/`::`/an IP)
   are orange; loopback-only ports are green.
 - **Configurable**: scan interval (default 30s), include/exclude UDP, hide
-  loopback-only ports, and the watched port range.
+  loopback-only ports, and the watched port ranges.
 
 ## How it works
 
