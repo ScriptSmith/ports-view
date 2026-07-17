@@ -158,7 +158,10 @@ class PortsViewIndicator extends PanelMenu.Button {
                 }
                 this._ports = this._parse(stdout || '');
                 this._renderBadge();
-                if (forceListRender || !this.menu.isOpen) {
+                // Rebuilding the list destroys and recreates a lot of actors,
+                // so never do it from the background timer; the menu re-renders
+                // (and force-scans) whenever it is opened.
+                if (forceListRender) {
                     this._renderList();
                 }
             } catch (e) {
