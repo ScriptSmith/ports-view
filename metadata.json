@@ -3,6 +3,6 @@
   "name": "Ports View",
   "description": "Shows a count of listening ports in the top bar and lists each port with its attached process",
   "version": 1,
-  "shell-version": ["45", "46", "47", "48", "49", "50"],
+  "shell-version": ["45", "46", "47", "48", "49", "50", "51"],
   "settings-schema": "org.gnome.shell.extensions.ports-view"
 }
